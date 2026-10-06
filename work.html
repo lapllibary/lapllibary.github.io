@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Work | Emerson Liu</title>
+<meta name="description" content="Research on reasoning segmentation, a FRUS archive searcher, an SQL database tester, and robotics software.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,400..800&family=Newsreader:ital,opsz,wght@0,6..72,400..600;1,6..72,400..500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<a class="skip" href="#content">Skip to content</a>
+<header class="bar grid">
+  <a class="mark" href="index.html">Emerson Liu</a>
+  <nav aria-label="Main">
+    <a href="work.html" aria-current="page">Work</a>
+    <a href="experience.html">Experience</a>
+    <a href="education.html">Education</a>
+    <a href="readings.html">Favorite readings</a>
+    <a href="hobbies.html">Hobbies</a>
+    <a href="#contact">Contact</a>
+  </nav>
+</header>
+
+<main id="content">
+<section id="work" aria-labelledby="work-h">
+    <div class="work-head grid">
+      <h1 class="title" id="work-h">Selected work</h1>
+      <p class="lede">Research on how models reason about images, tools that test and search large collections, and embedded software for a competition robot.</p>
+    </div>
+
+    <!-- CoT-Seg -->
+    <article class="proj cot grid">
+      <figure class="fig">
+        <img src="assets/cotseg-pipeline.jpg" alt="Diagram of the CoT-Seg pipeline. A user query goes to a reasoner, which passes prompts to a segmentation agent. An evaluator checks the mask and a refiner sends a corrected query back, for several rounds." width="1021" height="562">
+        <figcaption>The CoT-Seg loop: reason about the query, segment, evaluate, refine.</figcaption>
+      </figure>
+      <div class="text">
+        <p class="kind">ICLR 2026 workshop paper</p>
+        <h3>CoT-Seg</h3>
+        <p>Reasoning segmentation with multimodal LLMs. Given a plain-language request, the system reasons about what to find, proposes a mask, checks its own result, and corrects it over several rounds.</p>
+        <p>This was my final-year research project at HKUST.</p>
+        <p><a class="go" href="https://arxiv.org/abs/2601.17420">Read the paper</a><a class="go" href="https://github.com/DanielSHKao/CoT-Seg">View the code</a></p>
+      </div>
+    </article>
+
+    <!-- FRUS -->
+    <article class="proj frus grid">
+      <div class="text">
+        <p class="kind">Search tool and analysis</p>
+        <h3>FRUS database searcher</h3>
+        <p>A searcher for the State Department's Foreign Relations of the United States archive. It returns each match with its title, link, snippet and page, and I used the results to chart how often each country appears in documents from 1945 to 1964.</p>
+        <ul class="chips" aria-label="Tools"><li>Python</li><li>Data visualization</li></ul>
+      </div>
+      <figure class="chart">
+        <img src="assets/frus-chart.jpg" alt="Line chart on a log scale of the number of documents mentioning each country in five-year periods from 1945 to 1964. USSR and Russia is highest, followed by Germany, China, Japan, Korea, South Korea and North Korea." width="1731" height="960">
+        <figcaption>Document appearances by country, 1945 to 1964, log scale.</figcaption>
+      </figure>
+      <figure class="excerpt">
+        <img src="assets/frus-results.jpg" alt="JSON search results listing document titles, URLs, snippets and page numbers from the FRUS archive." width="1732" height="732">
+        <figcaption>Search output: title, URL, snippet, page.</figcaption>
+      </figure>
+    </article>
+
+    <!-- SQL tester -->
+    <article class="proj sql grid">
+      <div class="text">
+        <p class="kind">Testing pipeline</p>
+        <h3>Automated SQL database tester</h3>
+        <p>A Python pipeline that combines symbolic testing and fuzzing to run SQL queries automatically and surface database errors. It runs in Docker, and the same approach applies to data quality checks on production pipelines.</p>
+        <ul class="chips" aria-label="Tools"><li>Python</li><li>SQL</li><li>Docker</li><li>Symbolic testing</li><li>Fuzzing</li></ul>
+      </div>
+    </article>
+
+    <!-- RoboMaster -->
+    <article class="proj robo grid">
+      <figure class="team">
+        <img src="assets/robomaster-team.jpg" alt="The HKUST RoboMaster team seated together on the arena floor holding a team banner." width="1579" height="1036">
+      </figure>
+      <figure class="robot">
+        <img src="assets/robomaster-robot.jpg" alt="The team's hero robot on the competition floor, with the number 4 on its armor." width="683" height="710">
+      </figure>
+      <div class="text">
+        <p class="kind">Undergraduate robotics team</p>
+        <h3>HKUST RoboMaster</h3>
+        <p>Embedded software for the team's hero robot and launcher, written alongside the mechanical and hardware groups. I also designed the operator interface used in competition.</p>
+      </div>
+    </article>
+
+    <!-- Competitions -->
+    <div class="wins grid">
+      <h3>Competitions</h3>
+      <div class="win">
+        <b>2nd place, HKUST Inter-University Public Policy Case Competition</b>
+        <p>As team leader, I analyzed Hong Kong's housing market and presented public housing and rent-control recommendations to the judges.</p>
+      </div>
+      <div class="win">
+        <b>3rd prize, 13th DongSheng Cup International Entrepreneurship Competition</b>
+        <p>Software engineer on a team building a CLIP-based diffusion model for video generation.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<section id="contact" class="contact" aria-labelledby="contact-h">
+    <div class="grid"><h2 id="contact-h">Let's talk.</h2></div>
+    <div class="grid">
+      <p class="mail"><a href="mailto:hliudj@uw.edu">hliudj@uw.edu</a></p>
+      <div class="others">
+        <a href="https://www.linkedin.com/in/emerson-liu-74a184352">LinkedIn</a>
+        <a href="https://github.com/DanielSHKao/CoT-Seg">CoT-Seg on GitHub</a>
+        <a href="https://arxiv.org/abs/2601.17420">CoT-Seg on arXiv</a>
+      </div>
+    </div>
+  </section>
+
+<footer class="grid"><p>&copy; 2026 Emerson Liu</p></footer>
+</body>
+</html>

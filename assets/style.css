@@ -252,6 +252,7 @@
   .articles li:nth-child(2) { --shift: 7vw; }
   .articles li:nth-child(3) { --shift: 2.5vw; }
   .articles li:nth-child(4) { --shift: 11vw; }
+  .articles li:nth-child(5) { --shift: 4vw; }
   .entry:hover h3, .entry:focus-visible h3 { color: var(--blue); padding-left: calc(var(--shift) + 1.2vw); }
   @media (prefers-reduced-motion: reduce) { .entry h3 { transition: none; } }
 
@@ -276,6 +277,22 @@
   .book:nth-child(3) .cover { grid-column: 2 / 4; }
   .book:nth-child(3) h3, .book:nth-child(3) .by { grid-column: 4 / 10; }
   .book:nth-child(3) .note { grid-column: 10 / 13; grid-row: 1 / 3; }
+  /* ---------- hobbies ---------- */
+  .hob-head h1 { grid-column: 1 / 9; }
+  .hob-head .lede { grid-column: 1 / 6; }
+  .hob-blocks { margin-top: clamp(3rem, 7vw, 6rem); row-gap: 2.5rem; }
+  .hob h3 { font-size: clamp(1.8rem, 1.2rem + 2.2vw, 3rem); letter-spacing: -.03em; }
+  .hob p { margin: .9rem 0 0; max-width: 28em; }
+  .hob.sports { grid-column: 1 / 6; }
+  .hob.reading { grid-column: 7 / 12; margin-top: clamp(2rem, 6vw, 6rem); }
+  .moments-head { margin-top: clamp(4rem, 9vw, 9rem); }
+  .moments-head h2 { grid-column: 3 / 10; }
+  .moments { margin-top: clamp(2rem, 4vw, 3.5rem); align-items: start; }
+  .shot { margin: 0; }
+  .shot img { width: 100%; object-fit: cover; }
+  .shot.zurich { grid-column: 1 / 6; }
+  .shot.travel { grid-column: 7 / 13; margin-top: clamp(3rem, 12vw, 12rem); }
+  .shot figcaption { font-size: .95rem; max-width: 24em; }
   .back { padding-block: 2.4rem 0; font-family: var(--sans); font-weight: 600; }
 
   @media (max-width: 860px) {

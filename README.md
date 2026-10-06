@@ -13,8 +13,9 @@ Plain HTML and CSS. No build step, no dependencies.
 | `experience.html` | Internships and team roles |
 | `education.html` | Degrees, exchange semester and skills |
 | `readings.html` | Favorite readings |
+| `hobbies.html` | Hobbies and photos with friends |
 | `assets/style.css` | Styles shared by every page |
-| `assets/` | Images: portrait, hero background, project figures, book covers |
+| `assets/` | Images: portrait, hero background, project figures, book covers,  photos |
 
 ## Run locally
 
