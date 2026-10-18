@@ -100,6 +100,7 @@ export default function Museum({ books, onClose, saved, onSave }) {
       try { pathTracer = createLibraryPathTracer(renderer, scene, camera); setTracingStatus('ready'); }
       catch (error) { console.warn('Library ray tracing unavailable:', error); setTracingStatus('unavailable'); }
     }).catch(error => { if (!disposed) { console.warn('Library ray tracing could not load:', error); setTracingStatus('unavailable'); } });
+    }
     const previousPosition = camera.position.clone();
     const previousRotation = camera.quaternion.clone();
     const keys = new Set();
@@ -162,16 +163,3 @@ export default function Museum({ books, onClose, saved, onSave }) {
   }, [books, onClose]);
   return <div className="museum" ref={dialog} onKeyDown={event => { if (event.key === "Tab") { const buttons = [...dialog.current.querySelectorAll("button, summary")].filter(element => element.getClientRects().length > 0); const first = buttons[0], last = buttons[buttons.length - 1]; if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } } }} role="dialog" aria-modal="true" aria-label="Walkable personal library"><div className="museum-canvas" ref={host} /><header className="museum-header"><button onClick={onClose}>↖ Back to portfolio</button><span>EMERSON LIU <i> / The celestial library</i></span><button onClick={onClose}>▦ Collection</button></header><details className="museum-subjects" open><summary>Browse subjects <span>{subjects.length}</span></summary><nav aria-label="Library subjects">{browseSubjects.map(subject => <button key={subject.name} aria-pressed={activeSubject === subject.name} onClick={() => navigation.current.visit?.(subject)}>{subject.name}<span>{subject.books.length}</span></button>)}</nav></details><div className="museum-caption"><p>THE PERSONAL COLLECTION</p><h2>Wander through<br />a world of ideas.</h2><span>{books.length} books. A lifetime of curiosity.</span></div><div className="museum-controls"><p>WASD / arrows to walk · Drag to look · Click a book to inspect</p><div><button aria-label="Turn left" onClick={() => navigation.current.step?.('left')}>↶</button><button aria-label="Walk forward" onClick={() => navigation.current.step?.('forward')}>↑</button><button aria-label="Walk backward" onClick={() => navigation.current.step?.('back')}>↓</button><button aria-label="Turn right" onClick={() => navigation.current.step?.('right')}>↷</button><button onClick={() => navigation.current.home?.()}>Reset view</button><button aria-pressed={tracing && tracingStatus !== "unavailable"} disabled={tracingStatus === "preparing" || tracingStatus === "unavailable"} onClick={() => { if (tracingStatus === "idle") navigation.current.startTracing?.(); setTracing(!tracing); }}>{tracingStatus === "idle" ? "Enable ray tracing" : tracingStatus === "preparing" ? "Preparing ray tracing…" : tracingStatus === "unavailable" ? "PBR preview" : `Ray tracing ${tracing ? "on" : "off"}`}</button></div></div>{error && <div className="museum-book"><h3>Explore the collection</h3><p>3D is unavailable in this browser. Every book is available in the catalog.</p><button onClick={onClose}>Open catalog</button></div>}{selected && <div className="museum-book"><button className="museum-dismiss" aria-label="Close book details" onClick={() => setSelected(null)}>×</button><p className="library-eyebrow">{selected.category}</p><h3>{selected.title}</h3>{selected.translation && <p>{selected.translation}</p>}<p>{selected.author || 'Author not listed in draft'}</p><button onClick={() => onSave(selected)}>{saved.includes(selected.id) ? '♥ Saved to your shelf' : '♡ Save to your shelf'}</button></div>}</div>;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

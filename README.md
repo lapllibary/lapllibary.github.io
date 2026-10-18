@@ -29,3 +29,5 @@ npm run dev
 
 ## Interactive library
 The reading section uses React with Vite. Book content stays in index.html as a native details/summary fallback; The book list uses native collapsible subject groups. React reads the same collection for the Three.js walkable reading room and saved books. Saved books stay in local browser storage. In the room, use WASD/arrows or on-screen buttons, drag to look, and click a book to inspect it. No account or backend is required.
+
+The gallery floor uses procedural veined marble. Enable ray tracing in the room controls for progressive GPU path tracing; the PBR preview remains the default for responsive navigation. Ray tracing refines while stationary and depends on floating-point WebGL render targets and GPU capacity.
