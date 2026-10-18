@@ -41,7 +41,7 @@ Then open `http://localhost:8000`. You can also open `index.html` directly in a 
 - **Look and feel:** colors and fonts are set at the top of `assets/style.css`, in the `:root` block.
 - **Portrait:** replace `assets/portrait.jpg`. A portrait photo works best, roughly 2:3 or 4:5.
 - **Hero background:** replace `assets/hero-bg.jpg`. A larger image, 2000 px or wider, looks sharper.
-- **Links and email:** search for `hliudj@uw.edu` and the LinkedIn address to change them on every page.
+- **Links and email:** search for `lapllibrary@gmail.com` and the LinkedIn address to change them on every page.
 
 Keep filenames and folder structure as they are, or update the paths in the HTML and CSS.
 

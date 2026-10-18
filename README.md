@@ -26,3 +26,6 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+
+## Interactive library
+The reading section uses React with Vite. Book content stays in index.html as a native details/summary fallback; The book list uses native collapsible subject groups. React reads the same collection for the Three.js walkable reading room and saved books. Saved books stay in local browser storage. In the room, use WASD/arrows or on-screen buttons, drag to look, and click a book to inspect it. No account or backend is required.
