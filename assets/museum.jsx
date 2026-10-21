@@ -1,3 +1,4 @@
+import BookCover from './book-cover.jsx';
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
@@ -16,8 +17,21 @@ export default function Museum({ books, onClose, saved, onSave }) {
   });
   const [activeSubject, setActiveSubject] = useState('');
   const [selected, setSelected] = useState(null);
+  function pickRandomBook() {
+    const candidates = books.filter(book => book.id !== selected?.id);
+    const choices = candidates.length ? candidates : books;
+    if (choices.length) setSelected(choices[Math.floor(Math.random() * choices.length)]);
+  }
+
   const [error, setError] = useState(false);
   const [tracing, setTracing] = useState(false);
+  const [lightMode, setLightMode] = useState(0);
+  const lightModeLabels = ['Gold + purple', 'All gold', 'All purple'];
+  function cycleLights() {
+    const nextMode = (lightMode + 1) % lightModeLabels.length;
+    navigation.current.setLighting?.(nextMode);
+    setLightMode(nextMode);
+  }
   const [tracingStatus, setTracingStatus] = useState('idle');
   const tracingEnabled = useRef(false);
   tracingEnabled.current = tracing;
@@ -49,17 +63,19 @@ export default function Museum({ books, onClose, saved, onSave }) {
     environmentGenerator.dispose();
     function material(color, extra = {}) { const value = new THREE.MeshStandardMaterial({ color, roughness: .85, ...extra }); resources.push(value); return value; }
     function box(w, h, d, mat, x, y, z) { const geometry = new THREE.BoxGeometry(w, h, d); resources.push(geometry); const mesh = new THREE.Mesh(geometry, mat); mesh.position.set(x, y, z); scene.add(mesh); return mesh; }
-    const { shelfMaterial: wood } = createCelestialScenery(scene, resources, subjects);
+    const { shelfMaterial: wood, setLighting, robotsReady, dispose: disposeScenery } = createCelestialScenery(scene, resources, subjects);
     const colors = ['#344d42', '#884637', '#32495d', '#b3914f', '#62506b'];
     function texture(book, number) {
       const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 640;
-      const ctx = canvas.getContext('2d'); ctx.fillStyle = colors[book.categoryIndex % colors.length]; ctx.fillRect(0, 0, 512, 640);
-      ctx.strokeStyle = '#d4be84'; ctx.lineWidth = 3; ctx.strokeRect(30, 30, 452, 580);
-      ctx.fillStyle = '#eee3c7'; ctx.font = '18px Georgia'; ctx.fillText(`EMERSON'S LIBRARY   /   ${String(number + 1).padStart(2, '0')}`, 55, 80);
-      ctx.font = '36px Georgia'; let line = '', y = 205;
+      const cyanCover = book.category === 'Literature' || book.category === 'American history';
+      const theme = getComputedStyle(document.documentElement);
+      const ctx = canvas.getContext('2d'); ctx.fillStyle = cyanCover ? theme.getPropertyValue('--book-cyan').trim() : colors[book.categoryIndex % colors.length]; ctx.fillRect(0, 0, 512, 640);
+      ctx.strokeStyle = cyanCover ? theme.getPropertyValue('--book-cyan-ink').trim() : '#d4be84'; ctx.lineWidth = 3; ctx.strokeRect(30, 30, 452, 580);
+      ctx.fillStyle = (cyanCover || book.categoryIndex % colors.length === 3) ? theme.getPropertyValue('--book-purple-ink').trim() : '#eee3c7'; ctx.font = 'bold 18px Georgia'; ctx.fillText(`EMERSON'S LIBRARY   /   ${String(number + 1).padStart(2, '0')}`, 55, 80);
+      ctx.font = 'bold 36px Georgia'; let line = '', y = 205;
       for (const word of book.title.split(' ')) { if (ctx.measureText(line + word).width > 395 && line) { ctx.fillText(line.trim(), 55, y); y += 47; line = ''; } line += word + ' '; }
       ctx.fillText(line.trim(), 55, y);
-      ctx.font = '21px Georgia'; const author = book.author || book.translation || 'From the personal collection';
+      ctx.font = 'bold 21px Georgia'; const author = book.author || book.translation || 'From the personal collection';
       let authorLine = '', authorY = 485;
       for (const word of author.split(' ')) { if (ctx.measureText(authorLine + word).width > 390 && authorLine) { ctx.fillText(authorLine.trim(), 55, authorY); authorY += 29; authorLine = ''; } authorLine += word + ' '; }
       ctx.fillText(authorLine.trim(), 55, authorY);
@@ -95,7 +111,7 @@ export default function Museum({ books, onClose, saved, onSave }) {
     let pathTracer = null, disposed = false, lastMotion = performance.now();
     function initializeTracer() {
     setTracingStatus('preparing');
-    import('./library-pathtracer.js').then(({ createLibraryPathTracer }) => {
+    Promise.all([import('./library-pathtracer.js'), robotsReady]).then(([{ createLibraryPathTracer }]) => {
       if (disposed) return;
       try { pathTracer = createLibraryPathTracer(renderer, scene, camera); setTracingStatus('ready'); }
       catch (error) { console.warn('Library ray tracing unavailable:', error); setTracingStatus('unavailable'); }
@@ -139,7 +155,9 @@ export default function Museum({ books, onClose, saved, onSave }) {
     function resize() { renderer.setSize(container.clientWidth, container.clientHeight); camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); pathTracer?.reset(); }
     window.addEventListener('resize', resize); resize();
     const clock = new THREE.Clock();
-    navigation.current = { startTracing: initializeTracer, visit: subject => { camera.position.set(subject.side * 2.5, 3.1, subject.z); yaw = subject.side === -1 ? Math.PI / 2 : -Math.PI / 2; pitch = -Math.atan2(subject.signY - 3.1, 8.95); keys.clear(); setSelected(null); setActiveSubject(subject.name); }, step: direction => { if (direction === 'left') yaw += .3; if (direction === 'right') yaw -= .3; if (direction === 'forward' || direction === 'back') { const distance = direction === 'forward' ? 1.2 : -1.2; camera.position.x -= Math.sin(yaw) * distance; camera.position.z -= Math.cos(yaw) * distance; } }, home: () => { camera.position.set(0, 2.2, 13); yaw = 0; pitch = 0; setActiveSubject(''); } };
+    navigation.current = { setLighting: mode => { setLighting(mode); pathTracer?.updateLighting(); lastMotion = performance.now(); }, startTracing: initializeTracer, visit: subject => { camera.position.set(subject.side * 2.5, 3.1, subject.z); yaw = subject.side === -1 ? Math.PI / 2 : -Math.PI / 2; pitch = -Math.atan2(subject.signY - 3.1, 8.95); keys.clear(); setSelected(null); setActiveSubject(subject.name); }, step: direction => { if (direction === 'left') yaw += .3; if (direction === 'right') yaw -= .3; if (direction === 'forward' || direction === 'back') { const distance = direction === 'forward' ? 1.2 : -1.2; camera.position.x -= Math.sin(yaw) * distance; camera.position.z -= Math.cos(yaw) * distance; } }, home: () => { camera.position.set(0, 2.2, 13); yaw = 0; pitch = 0; setActiveSubject(''); } };
+    // Development-only measurements for checking the scene's asset budget.
+    let sampleStart = performance.now(), sampleFrames = 0;
     renderer.setAnimationLoop(() => {
       const delta = Math.min(clock.getDelta(), .05);
       if (keys.has('arrowleft') || keys.has('q')) yaw += delta * 1.3;
@@ -157,9 +175,25 @@ export default function Museum({ books, onClose, saved, onSave }) {
         try { pathTracer.render(performance.now() - lastMotion < 350); }
         catch (error) { console.warn('Library ray tracing stopped:', error); pathTracer.dispose(); pathTracer = null; setTracingStatus('unavailable'); renderer.render(scene, camera); }
       } else { pathTracer?.reset(); renderer.render(scene, camera); }
+      if (import.meta.env.DEV) {
+        sampleFrames++;
+        const elapsed = performance.now() - sampleStart;
+        if (elapsed >= 1000) {
+          renderer.domElement.dataset.libraryStats = JSON.stringify({
+            framesPerSecond: Math.round(sampleFrames * 10000 / elapsed) / 10,
+            drawCalls: renderer.info.render.calls,
+            triangles: renderer.info.render.triangles,
+            geometries: renderer.info.memory.geometries,
+            textures: renderer.info.memory.textures,
+            mode: pathTracer && tracingEnabled.current ? 'path-traced' : 'raster',
+            width: renderer.domElement.width, height: renderer.domElement.height,
+          });
+          sampleStart = performance.now(); sampleFrames = 0;
+        }
+      }
     });
     const previousOverflow = document.body.style.overflow; document.body.style.overflow = 'hidden';
-    return () => { disposed = true; document.body.style.overflow = previousOverflow; renderer.setAnimationLoop(null); pathTracer?.dispose(); renderer.dispose(); resources.forEach(resource => resource.dispose()); renderer.domElement.remove(); window.removeEventListener('keydown', keydown); window.removeEventListener('keyup', keyup); window.removeEventListener('blur', blur); window.removeEventListener('resize', resize); };
+    return () => { disposed = true; disposeScenery(); document.body.style.overflow = previousOverflow; renderer.setAnimationLoop(null); pathTracer?.dispose(); renderer.dispose(); resources.forEach(resource => resource.dispose()); renderer.domElement.remove(); window.removeEventListener('keydown', keydown); window.removeEventListener('keyup', keyup); window.removeEventListener('blur', blur); window.removeEventListener('resize', resize); };
   }, [books, onClose]);
-  return <div className="museum" ref={dialog} onKeyDown={event => { if (event.key === "Tab") { const buttons = [...dialog.current.querySelectorAll("button, summary")].filter(element => element.getClientRects().length > 0); const first = buttons[0], last = buttons[buttons.length - 1]; if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } } }} role="dialog" aria-modal="true" aria-label="Walkable personal library"><div className="museum-canvas" ref={host} /><header className="museum-header"><button onClick={onClose}>↖ Back to portfolio</button><span>EMERSON LIU <i> / The celestial library</i></span><button onClick={onClose}>▦ Collection</button></header><details className="museum-subjects" open><summary>Browse subjects <span>{subjects.length}</span></summary><nav aria-label="Library subjects">{browseSubjects.map(subject => <button key={subject.name} aria-pressed={activeSubject === subject.name} onClick={() => navigation.current.visit?.(subject)}>{subject.name}<span>{subject.books.length}</span></button>)}</nav></details><div className="museum-caption"><p>THE PERSONAL COLLECTION</p><h2>Wander through<br />a world of ideas.</h2><span>{books.length} books. A lifetime of curiosity.</span></div><div className="museum-controls"><p>WASD / arrows to walk · Drag to look · Click a book to inspect</p><div><button aria-label="Turn left" onClick={() => navigation.current.step?.('left')}>↶</button><button aria-label="Walk forward" onClick={() => navigation.current.step?.('forward')}>↑</button><button aria-label="Walk backward" onClick={() => navigation.current.step?.('back')}>↓</button><button aria-label="Turn right" onClick={() => navigation.current.step?.('right')}>↷</button><button onClick={() => navigation.current.home?.()}>Reset view</button><button aria-pressed={tracing && tracingStatus !== "unavailable"} disabled={tracingStatus === "preparing" || tracingStatus === "unavailable"} onClick={() => { if (tracingStatus === "idle") navigation.current.startTracing?.(); setTracing(!tracing); }}>{tracingStatus === "idle" ? "Enable ray tracing" : tracingStatus === "preparing" ? "Preparing ray tracing…" : tracingStatus === "unavailable" ? "PBR preview" : `Ray tracing ${tracing ? "on" : "off"}`}</button></div></div>{error && <div className="museum-book"><h3>Explore the collection</h3><p>3D is unavailable in this browser. Every book is available in the catalog.</p><button onClick={onClose}>Open catalog</button></div>}{selected && <div className="museum-book"><button className="museum-dismiss" aria-label="Close book details" onClick={() => setSelected(null)}>×</button><p className="library-eyebrow">{selected.category}</p><h3>{selected.title}</h3>{selected.translation && <p>{selected.translation}</p>}<p>{selected.author || 'Author not listed in draft'}</p><button onClick={() => onSave(selected)}>{saved.includes(selected.id) ? '♥ Saved to your shelf' : '♡ Save to your shelf'}</button></div>}</div>;
+  return <div className="museum" ref={dialog} onKeyDown={event => { if (event.key === "Tab") { const buttons = [...dialog.current.querySelectorAll("button, summary")].filter(element => element.getClientRects().length > 0); const first = buttons[0], last = buttons[buttons.length - 1]; if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); } else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); } } }} role="dialog" aria-modal="true" aria-label="Walkable personal library"><div className="museum-canvas" ref={host} /><header className="museum-header"><div className="museum-header-left"><button onClick={onClose}>↖ Back to portfolio</button><button className="museum-light-mode" onClick={cycleLights} aria-label={`Lights: ${lightModeLabels[lightMode]}. Switch to ${lightModeLabels[(lightMode + 1) % lightModeLabels.length]}.`}>Lights: {lightModeLabels[lightMode]}</button></div><span>EMERSON LIU <i> / The celestial library</i></span><div className="museum-header-actions"><button onClick={onClose}>▦ Collection</button><button className="museum-random" onClick={pickRandomBook} disabled={!books.length}>⚄ Random book</button></div></header><details className="museum-subjects" open><summary>Browse subjects <span>{subjects.length}</span></summary><nav aria-label="Library subjects">{browseSubjects.map(subject => <button key={subject.name} aria-pressed={activeSubject === subject.name} onClick={() => navigation.current.visit?.(subject)}>{subject.name}<span>{subject.books.length}</span></button>)}</nav></details><div className="museum-caption"><p>THE PERSONAL COLLECTION</p><h2>Wander through<br />a world of ideas.</h2><span>{books.length} books. A lifetime of curiosity.</span></div><div className="museum-controls"><p>WASD / arrows to walk · Drag to look · Click a book to inspect</p><div><button aria-label="Turn left" onClick={() => navigation.current.step?.('left')}>↶</button><button aria-label="Walk forward" onClick={() => navigation.current.step?.('forward')}>↑</button><button aria-label="Walk backward" onClick={() => navigation.current.step?.('back')}>↓</button><button aria-label="Turn right" onClick={() => navigation.current.step?.('right')}>↷</button><button onClick={() => navigation.current.home?.()}>Reset view</button><button aria-pressed={tracing && tracingStatus !== "unavailable"} disabled={tracingStatus === "preparing" || tracingStatus === "unavailable"} onClick={() => { if (tracingStatus === "idle") navigation.current.startTracing?.(); setTracing(!tracing); }}>{tracingStatus === "idle" ? "Enable ray tracing" : tracingStatus === "preparing" ? "Preparing ray tracing…" : tracingStatus === "unavailable" ? "PBR preview" : `Ray tracing ${tracing ? "on" : "off"}`}</button></div></div>{error && <div className="museum-book"><h3>Explore the collection</h3><p>3D is unavailable in this browser. Every book is available in the catalog.</p><button onClick={onClose}>Open catalog</button></div>}{selected && <div className="museum-book museum-book-selected"><button className="museum-dismiss" aria-label="Close book details" onClick={() => setSelected(null)}>×</button><BookCover key={selected.id} book={selected} /><div className="museum-book-info"><p className="library-eyebrow">{selected.category}</p><h3>{selected.title}</h3>{selected.translation && <p>{selected.translation}</p>}<p>{selected.author || 'Author not listed in draft'}</p><button onClick={() => onSave(selected)}>{saved.includes(selected.id) ? '♥ Saved to your shelf' : '♡ Save to your shelf'}</button></div></div>}</div>;
 }

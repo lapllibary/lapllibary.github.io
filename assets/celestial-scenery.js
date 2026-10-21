@@ -1,5 +1,8 @@
 import * as THREE from 'three';
+import { installRobotDisplays } from './robot-display.js';
 import { createMarbleTextures } from './marble.js';
+import { createCelestialDome, domeRailAnchor } from './celestial-dome.js';
+import { createGalleryInscription } from './gallery-inscription.js';
 
 // Geometry stays procedural; the palette belongs to the global design system.
 export function createCelestialScenery(scene, resources, subjects) {
@@ -16,6 +19,30 @@ export function createCelestialScenery(scene, resources, subjects) {
   const marble = mat('marble'), drape = mat('drape'), steel = mat('steel', { metalness: .8, roughness: .28 });
   const joints = mat('joints', { metalness: .65 });
   const glow = mat('glow', { emissive: color('glow'), emissiveIntensity: 2.5 });
+  const purpleGlow = mat('purple-light', { emissive: color('purple-light'), emissiveIntensity: 2.5 });
+  // Separate fixture materials keep decorative robot and sun glows unchanged.
+  const fixtureGold = glow.clone(), fixturePurple = purpleGlow.clone();
+  resources.push(fixtureGold, fixturePurple);
+  const fixtureLights = [];
+  function registerLight(light, isPurple) {
+    light.userData.libraryLightId = fixtureLights.length;
+    fixtureLights.push({ light, isPurple });
+  }
+  function setLighting(mode) {
+    const goldColor = color('glow'), purpleColor = color('purple-light');
+    const phaseColors = mode === 1 ? [goldColor, goldColor] : mode === 2 ? [purpleColor, purpleColor] : [goldColor, purpleColor];
+    [fixtureGold, fixturePurple].forEach((material, index) => {
+      material.color.set(phaseColors[index]);
+      material.emissive.set(phaseColors[index]);
+    });
+    fixtureLights.forEach(({ light, isPurple }) => light.color.set(phaseColors[Number(isPurple)]));
+  }
+  const columnLightCounts = new Map();
+  function nextLightIsPurple(column) {
+    const index = columnLightCounts.get(column) || 0;
+    columnLightCounts.set(column, index + 1);
+    return index % 2 === 0;
+  }
   const orbit = new THREE.LineBasicMaterial({ color: color('gold'), transparent: true, opacity: .45 }); resources.push(orbit);
   scene.background = new THREE.Color(color('night'));
   scene.fog = new THREE.Fog(color('night'), 32, 90);
@@ -30,33 +57,20 @@ export function createCelestialScenery(scene, resources, subjects) {
     const geometry = new THREE.BufferGeometry().setFromPoints(points); resources.push(geometry);
     const line = new THREE.LineLoop(geometry, orbit); line.position.set(x, y, z); line.rotation.x = tilt; parent.add(line); return line;
   }
-  box(24, .2, 42, floor, 0, -.12, -4);
-  // Low dark walls hold the books; the ceiling opens onto a star field.
-  box(.3, 7.8, 42, midnight, -12, 3.9, -4); box(.3, 7.8, 42, midnight, 12, 3.9, -4);
-  box(24, 7.8, .3, midnight, 0, 3.9, -25);
+  box(40, .2, 68, floor, 0, -.1, -4);
+  // Freestanding shelves leave the curved enclosure visible all the way to its base.
   for (let z = -24; z <= 16; z += 2) box(24, .008, .012, gold, 0, .004, z);
   for (let x = -12; x <= 12; x += 2) box(.012, .008, 42, gold, x, .004, -4);
   for (let r = 1; r <= 20; r += 1.5) ring(r, 0, .025, -6);
-  // Concentric celestial charts float behind the sculptures.
-  for (const [x, z, radius] of [[-5, -15, 5], [5, -23, 7]]) {
-    for (let r = 1; r <= radius; r += .65) ring(r, x, 7, z, .18);
-  }
-  const starPositions = [];
-  let seed = 739;
-  const random = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
-  for (let i = 0; i < 1600; i++) {
-    const angle = random() * Math.PI * 2, elevation = random() * Math.PI / 2;
-    const distance = 40 + random() * 30;
-    starPositions.push(Math.cos(angle) * Math.cos(elevation) * distance, 8 + Math.sin(elevation) * distance, -6 + Math.sin(angle) * Math.cos(elevation) * distance);
-  }
-  const starGeometry = new THREE.BufferGeometry(); starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3)); resources.push(starGeometry);
-  const starMaterial = new THREE.PointsMaterial({ color: color('marble'), size: .1, transparent: true, opacity: .8, sizeAttenuation: true }); resources.push(starMaterial);
-  scene.add(new THREE.Points(starGeometry, starMaterial));
+
+  createCelestialDome(scene, resources);
+  createGalleryInscription(scene, resources);
   scene.add(new THREE.HemisphereLight(color('sky'), color('gold'), .6));
   const moonlight = new THREE.DirectionalLight(color('sky'), 1.2); moonlight.position.set(-8, 15, 6); scene.add(moonlight);
   const front = new THREE.DirectionalLight(color('marble'), .7); front.position.set(0, 5, 16); scene.add(front);
-  for (const z of [7, -5, -17]) {
-    const lamp = new THREE.PointLight(color('glow'), 45, 18, 1.5); lamp.position.set(0, 4, z); scene.add(lamp);
+  for (const [index, z] of [7, -5, -17].entries()) {
+    const lamp = new THREE.PointLight(color(index % 2 === 0 ? 'purple-light' : 'glow'), 45, 18, 1.5); lamp.position.set(0, 4, z); scene.add(lamp);
+    registerLight(lamp, index % 2 === 0);
 
   }
   // Continuous orbital tracks tie the fixtures into the celestial architecture.
@@ -65,17 +79,18 @@ export function createCelestialScenery(scene, resources, subjects) {
     return mesh(new THREE.TubeGeometry(path, 80, .028, 8, false), gold);
   }
   for (const x of [-9.1, 0, 9.1]) {
-    orbitalRail([[x,7.45,16],[x,7.45,4],[x,7.45,-10],[x,7.45,-24]]);
+    orbitalRail([domeRailAnchor('x', x, 1).toArray(),[x,7.45,16],[x,7.45,4],[x,7.45,-10],[x,7.45,-24],domeRailAnchor('x', x, -1).toArray()]);
   }
   for (const z of [9, -4, -17]) {
-    orbitalRail([[-11.9,7.78,z],[-9.1,7.45,z],[-4.5,8.2,z],[0,7.45,z],[4.5,8.2,z],[9.1,7.45,z],[11.9,7.78,z]]);
+    orbitalRail([domeRailAnchor('z', z, -1).toArray(),[-11.9,7.78,z],[-9.1,7.45,z],[-4.5,8.2,z],[0,7.45,z],[4.5,8.2,z],[9.1,7.45,z],[11.9,7.78,z],domeRailAnchor('z', z, 1).toArray()]);
   }
   // Brass lamps sit directly on their tracks, with downward PBR spotlights.
   function pendant(x, z, targetX, targetY, targetZ, castShadow = false) {
+    const isPurple = nextLightIsPurple(x);
     cylinder(.09, .09, .16, gold, x, 7.43, z);
     cylinder(.56, .65, .18, gold, x, 7.28, z);
-    cylinder(.48, .48, .025, glow, x, 7.17, z);
-    const lamp = new THREE.SpotLight(color('glow'), 160, 24, Math.PI / 3.4, .65, 2);
+    cylinder(.48, .48, .025, isPurple ? fixturePurple : fixtureGold, x, 7.17, z);
+    const lamp = new THREE.SpotLight(color(isPurple ? 'purple-light' : 'glow'), 160, 24, Math.PI / 3.4, .65, 2);
     lamp.position.set(x, 7.1, z); lamp.target.position.set(targetX, targetY, targetZ);
     lamp.castShadow = castShadow;
     if (castShadow) {
@@ -84,15 +99,16 @@ export function createCelestialScenery(scene, resources, subjects) {
       resources.push({ dispose: () => lamp.shadow.dispose() });
     }
     scene.add(lamp, lamp.target);
+    registerLight(lamp, isPurple);
   }
   for (const z of [9, -4, -17]) pendant(0, z, 0, 0, z, true);
   for (const subject of subjects) {
     const x = subject.side * 9.1;
-    orbitalRail([[subject.side * 11.9,7.78,subject.z],[subject.side * 10.6,7.7,subject.z],[x,7.45,subject.z]]);
+    orbitalRail([domeRailAnchor('z', subject.z, subject.side).toArray(),[subject.side * 11.9,7.78,subject.z],[subject.side * 10.6,7.7,subject.z],[x,7.45,subject.z]]);
     pendant(x, subject.z, subject.side * 11.5, 2.1, subject.z);
   }
   const sun = sphere(.55, glow, 3.8, 7, -24);
-  for (let r = .85; r < 4; r += .45) ring(r, sun.position.x, 7, -24, 0);
+
   // Plinths echo the reference's circular orbital pedestals.
   function plinth(x, z) {
     const group = new THREE.Group(); group.position.set(x, 0, z); scene.add(group);
@@ -102,8 +118,11 @@ export function createCelestialScenery(scene, resources, subjects) {
     for (const r of [1.4, 1.8, 2.3]) ring(r, x, .035, z);
     return group;
   }
+  const robotDisplays = [];
   function robot(x, z, turn) {
-    const group = plinth(x, z); group.rotation.y = turn;
+    const mount = plinth(x, z); mount.rotation.y = turn;
+    const group = new THREE.Group(); mount.add(group);
+    robotDisplays.push({ mount, fallback: group });
     const limb = (ax, ay, az, bx, by, bz, radius = .09) => {
       const start = new THREE.Vector3(ax, ay, az), end = new THREE.Vector3(bx, by, bz), difference = end.clone().sub(start);
       const part = mesh(new THREE.CylinderGeometry(radius, radius * .85, difference.length(), 12), steel, ...start.clone().add(end).multiplyScalar(.5).toArray(), group);
@@ -131,11 +150,6 @@ export function createCelestialScenery(scene, resources, subjects) {
   const globe = plinth(0, -19);
   sphere(.58, gold, 0, 1.5, 0, globe);
   for (const tilt of [0, .8, 1.6]) { const arm = ring(.9, 0, 1.5, 0, tilt, globe); arm.rotation.y = .5; }
-  return { shelfMaterial: gold };
+  const robots = installRobotDisplays(robotDisplays, resources);
+  return { shelfMaterial: gold, setLighting, robotsReady: robots.ready, dispose: robots.dispose };
 }
-
-
-
-
-
-

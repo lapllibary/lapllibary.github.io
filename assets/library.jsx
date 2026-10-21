@@ -36,10 +36,8 @@ function Library() {
   </div>;
 }
 if (source) {
-  const mount = document.createElement('div');
-  mount.id = 'interactive-library';
+  const mount = document.getElementById('interactive-library');
   const heading = document.querySelector('.shelf-head');
-  (heading || source).before(mount);
   createRoot(mount).render(<Library />);
   source.hidden = false;
   if (heading) heading.hidden = false;

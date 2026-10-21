@@ -49,6 +49,18 @@ export function createLibraryPathTracer(renderer, scene, camera) {
     render(moving) { tracer.enablePathTracing = !moving; if (moving) tracer.updateCamera(); tracer.renderSample(); },
     reset() { tracer.updateCamera(); },
     updateMaterials() { tracer.updateMaterials(); },
+    updateLighting() {
+      const colors = new Map();
+      scene.traverse(object => {
+        if (object.isLight && object.userData.libraryLightId !== undefined) colors.set(object.userData.libraryLightId, object.color);
+      });
+      tracedScene.traverse(object => {
+        const color = colors.get(object.userData.libraryLightId);
+        if (object.isLight && color) object.color.copy(color);
+      });
+      tracer.updateLights();
+      tracer.updateMaterials();
+    },
     dispose() { tracer.dispose(); owned.forEach(resource => resource.dispose()); },
   };
 }

@@ -49,7 +49,7 @@
 
       <div class="intro">
         <p>I am an engineer that likes to optimize solutions to problems and make people's work more efficent.</p>
-        <p class="sub">Master's student in Information Science at the University of Washington. Previously at DreamAI
+        <p class="sub">Master's student in Information Systems at the University of Washington. Previously at DreamAI
           and Braillic.</p>
         <div class="links">
           <a href="https://www.linkedin.com/in/emerson-liu-74a184352">LinkedIn</a>
@@ -65,6 +65,8 @@
         <h2 class="title" id="work-h">Selected Projects</h2>
       </div>
 
+      <div id="interactive-library"></div>
+
       <article class="proj cot grid">
         <figure class="fig">
           <img src="assets/cotseg-pipeline.jpg"
@@ -75,8 +77,13 @@
         <div class="text">
           <p class="kind">MLLM research</p>
           <h3>CoT-Seg</h3>
-          <p>Co-first author of ICLR2026 workshop paper. Uses CoT prompting, self-recursive improvement, and RAG for
-            out-of-domain knowledge to improve segmentation accuracy for complex queries.</p>
+          <p>Co-first author of ICLR2026 workshop paper.
+            Have you ever tried to ask a VLM to segment out the first violinist in an orchestra? You'll find VLMs
+            struggle with implict aand complicated prompts. Our model leverages<strong> chain-of-thought
+              prompting</strong>, <strong>recursive
+              self improvement</strong> and <strong>retrieval-augmented generation</strong> to improve the accuracy of
+            the image segmentation.
+          </p>
           <p><a class="go" href="https://arxiv.org/abs/2601.17420">Read the paper</a><a class="go"
               href="https://github.com/DanielSHKao/CoT-Seg">View the code</a></p>
         </div>
@@ -89,7 +96,11 @@
           <p>A searcher for the State Department's Foreign Relations of the United States archive. It returns each match
             with its title, link, snippet and page, and I used the results to chart how often each country appears in
             documents from 1945 to 1964 and to reflect how US foreign policy activity priorities shifted through these
-            years. Demonstrates the convenience of automating database searches in research.</p>
+            years. The trends show the spike in diplomatic activity right after the cold war, trends related to the
+            Korean war and how less documents are released the closer it is to the present. A lot of documents on Japan
+            are censored/being
+            withheld therefore Japan has relatively fewer documents mentions than other east Asian countries.
+            Demonstrates the convenience of <strong>automating database web searches</strong> in research. </p>
           <ul class="chips" aria-label="Tools">
             <li>Python</li>
             <li>Data visualization</li>
@@ -113,8 +124,10 @@
         <div class="text">
           <p class="kind">Testing pipeline</p>
           <h3>Automated SQL database tester</h3>
-          <p>A Python pipeline that combines symbolic testing and fuzzing to run SQL queries automatically and surface
-            database errors. It runs in Docker, and the same approach applies to data quality checks on production
+          <p>A Python pipeline that combines <strong>symbolic testing and fuzzing</strong> to run SQL queries
+            automatically and surface
+            database errors. It runs in <strong>Docker</strong>, and the same approach applies to data quality checks on
+            production
             pipelines.</p>
           <ul class="chips" aria-label="Tools">
             <li>Python</li>
@@ -140,7 +153,8 @@
         <div class="text">
           <p class="kind">Undergraduate robotics team</p>
           <h3>HKUST RoboMaster</h3>
-          <p>Programmed embedded software for hero robot, developed core repository interface code ,interboard
+          <p>Programmed <strong>embedded</strong> software for hero robot, developed core repository interface code
+            ,interboard
             communication, IMU calculations, communication with the referee system, CV target tracking,user ui design
             for competition robots(Hero and launcher) as part of a cross-functional mechanical/hardware/embedded team.
           </p>
@@ -151,8 +165,16 @@
         <h3>Competitions</h3>
         <div class="win">
           <b>2nd place, HKUST Inter-University Public Policy Case Competition</b>
-          <p>As team leader, I analyzed Hong Kong's housing market and presented public housing and rent-control
-            recommendations to the judges.</p>
+          <p>As team leader, I coordinated our team in analyzing Hong Kong's housing market and presented public housing
+            and rent-control
+            recommendations to the judges. We combined our culture backgrounds "Indian/Mainland/White/Local" and
+            expertise"computer science/business/social science/engineering" to provide a comprehensive analysis of Hong
+            Kong's housing situation</p>
+          <figure class="competition-photo">
+            <img data-case-competition-photo
+              alt="Team members holding certificates at the 2024 HKUST Inter-University Public Policy Case Competition."
+              width="4200" height="2800" loading="lazy">
+          </figure>
         </div>
         <div class="win">
           <b>3rd prize, 13th DongSheng Cup International Entrepreneurship Competition</b>
@@ -224,9 +246,11 @@
       <div class="two grid">
         <h2 class="title" id="edu-h">Education</h2>
         <div class="edu">
-          <div><b>University of Washington, Seattle</b>M.S., Information Science<br><span>2026 to present</span></div>
-          <div><b>ETH Zurich</b>Exchange semester<br><span>Feb 2025 to Aug 2025</span></div>
-          <div><b>Hong Kong University of Science and Technology</b>B.Eng., Computer Science<br><span>2022 to
+          <div class="edu-photo edu-uw"><b>University of Washington, Seattle</b>M.S., Information Systems<br><span>2026
+              to present</span></div>
+          <div class="edu-photo edu-eth"><b>ETH Zurich</b>Exchange semester<br><span>Feb 2025 to Aug 2025</span></div>
+          <div class="edu-photo edu-hkust"><b>Hong Kong University of Science and Technology</b>B.Eng., Computer
+            Science<br><span>2022 to
               2026</span></div>
         </div>
         <div class="skills">
@@ -464,7 +488,8 @@
       <div class="hob-blocks grid">
         <div class="hob sports">
           <h3>Sports with friends</h3>
-          <p>Basketball is my main game. I also play badminton, tennis and soccer casually, mostly whenever friends are
+          <p>Basketball is my favorite sport. I also play badminton, tennis and soccer casually, mostly whenever friends
+            are
             up for a match.</p>
         </div>
         <div class="hob reading">
@@ -512,6 +537,8 @@
   <footer class="grid">
     <p>&copy; 2026 Emerson Liu</p>
   </footer>
+  <script type="module" src="/assets/case-competition.js"></script>
+  <script type="module" src="/assets/education-background.js"></script>
   <script type="module" src="/assets/library.jsx"></script>
 </body>
 
